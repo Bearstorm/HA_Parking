@@ -1,1 +1,15 @@
 
+identify_vehicle:
+  name: "Identifikácia vozidla a užívateľa"
+  description: "Identifikuje vozidlo a užívateľa podľa ID."
+  fields:
+    vehicle_id:
+      name: "ID vozidla"
+      required: true
+      selector:
+        text:
+    user_id:
+      name: "ID užívateľa"
+      required: true
+      selector:
+        text:
