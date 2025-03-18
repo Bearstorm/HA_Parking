@@ -9,6 +9,10 @@ _LOGGER = logging.getLogger(__name__)
 DOMAIN = "fleet_charging"
 
 async def async_setup(hass: HomeAssistant, config: dict):
+    # Táto inicializácia zostáva kvôli spätnej kompatibilite
+    return True
+
+async def async_setup_entry(hass: HomeAssistant, entry):
     db = FleetDatabase(hass)
     await db.initialize()
 
@@ -71,5 +75,15 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
     async_track_time_interval(hass, daily_report, timedelta(days=1))
 
+    # Inicializácia platformy sensor (ak ju používaš)
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "sensor")
+    )
+
     return True
+
+async def async_unload_entry(hass: HomeAssistant, entry):
+    await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+    return True
+
 
