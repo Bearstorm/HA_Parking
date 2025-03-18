@@ -11,7 +11,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain="fleet_charging"):
         if user_input is not None:
             db = FleetDatabase(self.hass)
             await db.initialize()
-            
+
             vehicle_id = user_input["vehicle_id"]
             vehicle_name = user_input["vehicle_name"]
             user_id = user_input["user_id"]
@@ -19,11 +19,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain="fleet_charging"):
 
             try:
                 await db.add_vehicle(vehicle_id, vehicle_name)
-                await db.add_user(user_id, user_name)
+                await db.add_user(user_id, name=user_name)  # Opravené tu!
             except Exception as e:
                 errors["base"] = "database_error"
                 _LOGGER.exception("Database error: %s", e)
-            
+
             if not errors:
                 return self.async_create_entry(title="Fleet Charging", data=user_input)
 
@@ -39,4 +39,3 @@ class ConfigFlow(config_entries.ConfigFlow, domain="fleet_charging"):
             data_schema=data_schema,
             errors=errors
         )
-
