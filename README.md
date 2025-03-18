@@ -114,7 +114,7 @@ You can add vehicles and users directly through the Home Assistant UI:
 
 ### 🧑‍💻 Autor / Author:
 
-- [Tvoje meno / Your name](https://github.com/tvojGithub)
+- [Bearstorm](https://github.com/Bearstorm/)
 
 📌 **Feedback a návrhy vítané! / Feedback and suggestions welcome!**
 
