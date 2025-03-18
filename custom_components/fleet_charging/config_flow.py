@@ -39,3 +39,4 @@ class ConfigFlow(config_entries.ConfigFlow, domain="fleet_charging"):
             data_schema=data_schema,
             errors=errors
         )
+
