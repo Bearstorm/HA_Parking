@@ -1,15 +1,50 @@
-
 identify_vehicle:
   name: "Identifikácia vozidla a užívateľa"
   description: "Identifikuje vozidlo a užívateľa podľa ID."
   fields:
     vehicle_id:
       name: "ID vozidla"
+      description: "Unikátne ID vozidla"
       required: true
       selector:
         text:
     user_id:
       name: "ID užívateľa"
+      description: "Unikátne ID užívateľa"
+      required: true
+      selector:
+        text:
+
+add_vehicle:
+  name: "Pridanie vozidla do databázy"
+  description: "Pridá nové vozidlo do databázy."
+  fields:
+    vehicle_id:
+      name: "ID vozidla"
+      description: "Unikátne ID vozidla (napr. EV123)"
+      required: true
+      selector:
+        text:
+    name:
+      name: "Názov vozidla"
+      description: "Názov vozidla (napr. Škoda Enyaq)"
+      required: true
+      selector:
+        text:
+
+add_user:
+  name: "Pridanie užívateľa do databázy"
+  description: "Pridá nového užívateľa do databázy."
+  fields:
+    user_id:
+      name: "ID užívateľa"
+      description: "Unikátne ID užívateľa (napr. user001)"
+      required: true
+      selector:
+        text:
+    name:
+      name: "Meno užívateľa"
+      description: "Celé meno užívateľa (napr. Ján Novák)"
       required: true
       selector:
         text:
