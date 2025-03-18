@@ -18,7 +18,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
         "current_user": None
     }
 
-    # Identifikácia vozidla
+    # Identifikácia vozidla a užívateľa
     async def handle_identify_vehicle(call: ServiceCall):
         vehicle_id = call.data.get("vehicle_id")
         user_id = call.data.get("user_id")
@@ -45,12 +45,30 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
     hass.services.async_register(DOMAIN, "identify_vehicle", handle_identify_vehicle)
 
+    # Pridanie vozidla
+    async def handle_add_vehicle(call: ServiceCall):
+        vehicle_id = call.data.get("vehicle_id")
+        name = call.data.get("name")
+        await db.add_vehicle(vehicle_id, name)
+        _LOGGER.info(f"Vehicle added: {vehicle_id} - {name}")
+
+    hass.services.async_register(DOMAIN, "add_vehicle", handle_add_vehicle)
+
+    # Pridanie užívateľa
+    async def handle_add_user(call: ServiceCall):
+        user_id = call.data.get("user_id")
+        name = call.data.get("name")
+        await db.add_user(user_id, name)
+        _LOGGER.info(f"User added: {user_id} - {name}")
+
+    hass.services.async_register(DOMAIN, "add_user", handle_add_user)
+
     # Automatické generovanie reportu denne o polnoci
     async def daily_report(now=None):
         report = await generate_report(db)
         hass.states.async_set(f"{DOMAIN}.daily_report", report)
+        _LOGGER.info("Daily report generated")
 
     async_track_time_interval(hass, daily_report, timedelta(days=1))
 
     return True
-
