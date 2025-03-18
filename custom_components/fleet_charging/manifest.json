@@ -1,7 +1,7 @@
 {
   "domain": "fleet_charging",
   "name": "Bearstorm Fleet Charging Manager",
-  "version": "1.0.3",
+  "version": "1.0.2",
   "documentation": "https://github.com/Bearstorm/HA_Parking",
   "dependencies": [],
   "codeowners": ["@Bearstorm"],
