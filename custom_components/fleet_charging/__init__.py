@@ -63,7 +63,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
     hass.services.async_register(DOMAIN, "add_user", handle_add_user)
 
-    # Automatické generovanie reportu denne o polnoci
+    # Automatické generovanie reportu denne
     async def daily_report(now=None):
         report = await generate_report(db)
         hass.states.async_set(f"{DOMAIN}.daily_report", report)
@@ -72,3 +72,4 @@ async def async_setup(hass: HomeAssistant, config: dict):
     async_track_time_interval(hass, daily_report, timedelta(days=1))
 
     return True
+
