@@ -9,8 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 DOMAIN = "fleet_charging"
 
 async def async_setup(hass: HomeAssistant, config: dict):
-    # Táto inicializácia zostáva kvôli spätnej kompatibilite
-    return True
+    return True  # Zachovanie spätnej kompatibility
 
 async def async_setup_entry(hass: HomeAssistant, entry):
     db = FleetDatabase(hass)
@@ -22,7 +21,6 @@ async def async_setup_entry(hass: HomeAssistant, entry):
         "current_user": None
     }
 
-    # Identifikácia vozidla a užívateľa
     async def handle_identify_vehicle(call: ServiceCall):
         vehicle_id = call.data.get("vehicle_id")
         user_id = call.data.get("user_id")
@@ -49,7 +47,6 @@ async def async_setup_entry(hass: HomeAssistant, entry):
 
     hass.services.async_register(DOMAIN, "identify_vehicle", handle_identify_vehicle)
 
-    # Pridanie vozidla
     async def handle_add_vehicle(call: ServiceCall):
         vehicle_id = call.data.get("vehicle_id")
         name = call.data.get("name")
@@ -58,7 +55,6 @@ async def async_setup_entry(hass: HomeAssistant, entry):
 
     hass.services.async_register(DOMAIN, "add_vehicle", handle_add_vehicle)
 
-    # Pridanie užívateľa
     async def handle_add_user(call: ServiceCall):
         user_id = call.data.get("user_id")
         name = call.data.get("name")
@@ -67,7 +63,6 @@ async def async_setup_entry(hass: HomeAssistant, entry):
 
     hass.services.async_register(DOMAIN, "add_user", handle_add_user)
 
-    # Automatické generovanie reportu denne
     async def daily_report(now=None):
         report = await generate_report(db)
         hass.states.async_set(f"{DOMAIN}.daily_report", report)
@@ -75,7 +70,6 @@ async def async_setup_entry(hass: HomeAssistant, entry):
 
     async_track_time_interval(hass, daily_report, timedelta(days=1))
 
-    # Inicializácia platformy sensor (ak ju používaš)
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "sensor")
     )
@@ -85,5 +79,4 @@ async def async_setup_entry(hass: HomeAssistant, entry):
 async def async_unload_entry(hass: HomeAssistant, entry):
     await hass.config_entries.async_forward_entry_unload(entry, "sensor")
     return True
-
 
