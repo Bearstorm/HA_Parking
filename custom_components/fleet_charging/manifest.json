@@ -1,15 +1,19 @@
 {
   "domain": "fleet_charging",
   "name": "Bearstorm Fleet Charging Manager",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "documentation": "https://github.com/Bearstorm/HA_Parking",
   "dependencies": [],
   "codeowners": ["@Bearstorm"],
   "requirements": ["aiosqlite"],
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/Bearstorm/HA_Parking/issues",
-  "config_flow": true
-  "logo": "logo.png"
+  "config_flow": true,
+  "panel_custom": {
+    "module_url": "/fleet_charging/panel.js",
+    "frontend_url_path": "fleet_charging",
+    "require_admin": true,
+    "sidebar_title": "Fleet Charging",
+    "sidebar_icon": "mdi:ev-station"
+  }
 }
-
-
