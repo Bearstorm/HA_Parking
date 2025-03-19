@@ -10,10 +10,27 @@
   "issue_tracker": "https://github.com/Bearstorm/HA_Parking/issues",
   "config_flow": true,
   "panel_custom": {
-    "module_url": "/fleet_charging/panel.js",
-    "frontend_url_path": "fleet_charging",
-    "require_admin": true,
-    "sidebar_title": "Fleet Charging",
-    "sidebar_icon": "mdi:ev-station"
-  }
+    "name": "fleet_charging_panel",
+    "embed_iframe": true,
+    "trust_external": false,
+    "module_url": "/local/fleet_charging/panel.js"
+  },
+  "homeassistant": "2024.3.0",
+  "integration_type": "hub",
+  "is_built_in": false,
+  "ssdp": [],
+  "zeroconf": [],
+  "bluetooth": [],
+  "modbus": [
+    {
+      "name": "wallbox_1",
+      "host": "192.168.1.10",
+      "port": 502
+    },
+    {
+      "name": "wallbox_2",
+      "host": "192.168.1.11",
+      "port": 502
+    }
+  ]
 }
