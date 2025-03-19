@@ -12,9 +12,9 @@
   "panel_admin": true,
   "panel_custom": {
     "name": "fleet_charging_manager",
-    "url_path": "fleet_charging_manager",
-    "sidebar_title": "Fleet Charging Manager",
-    "sidebar_icon": "mdi:car-electric",
-    "module_url": "/hacsfiles/fleet_charging_manager/panel.js"
+    "embed_iframe": true,
+    "trust_external_script": true,
+    "module_url": "/local/fleet_charging_manager.js"
   }
 }
+
