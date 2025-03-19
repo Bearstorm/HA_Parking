@@ -1,74 +1,100 @@
+import asyncio
+import json
 import logging
-from homeassistant.core import HomeAssistant, ServiceCall
+from aiohttp import web
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.typing import ConfigType
 from .database import FleetDatabase
 
 _LOGGER = logging.getLogger(__name__)
+
 DOMAIN = "fleet_charging"
 
-async def async_setup(hass: HomeAssistant, config):
-    """Registrácia API služieb pre Wallboxy."""
-    
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Nastavenie API pre Fleet Charging Manager."""
     db = FleetDatabase(hass)
     await db.initialize()
 
-    # Spustenie nabíjania
-    async def start_charging(call: ServiceCall):
-        vehicle_id = call.data.get("vehicle_id")
-        wallbox_id = call.data.get("wallbox_id")
+    async def handle_get_data(request):
+        """API endpoint na získanie údajov."""
+        try:
+            users = await db.get_all_users()
+            vehicles = await db.get_all_vehicles()
+            sessions = await db.get_all_sessions()
 
-        _LOGGER.info(f"Spúšťam nabíjanie pre vozidlo {vehicle_id} na Wallboxe {wallbox_id}")
+            return web.json_response({
+                "users": users,
+                "vehicles": vehicles,
+                "sessions": sessions
+            })
 
-        hass.states.async_set(f"sensor.{wallbox_id}_charging_authorisation", "on")
+        except Exception as e:
+            _LOGGER.error(f"Chyba pri načítaní údajov: {e}")
+            return web.json_response({"error": "Nepodarilo sa načítať údaje"}, status=500)
 
-        hass.bus.async_fire("fleet_charging.charging_started", {
-            "vehicle_id": vehicle_id,
-            "wallbox_id": wallbox_id
-        })
+    async def handle_add_user(request):
+        """API endpoint na pridanie používateľa."""
+        try:
+            data = await request.json()
+            user_id = data.get("user_id")
+            name = data.get("name")
 
-    hass.services.async_register(DOMAIN, "start_charging", start_charging)
+            if not user_id or not name:
+                return web.json_response({"error": "Chýbajú požadované údaje"}, status=400)
 
-    # Ukončenie nabíjania
-    async def stop_charging(call: ServiceCall):
-        wallbox_id = call.data.get("wallbox_id")
+            await db.add_user(user_id, name)
+            return web.json_response({"message": "Používateľ bol pridaný"})
 
-        _LOGGER.info(f"Ukončujem nabíjanie na Wallboxe {wallbox_id}")
+        except Exception as e:
+            _LOGGER.error(f"Chyba pri pridávaní používateľa: {e}")
+            return web.json_response({"error": "Nepodarilo sa pridať používateľa"}, status=500)
 
-        hass.states.async_set(f"sensor.{wallbox_id}_charging_authorisation", "off")
+    async def handle_add_vehicle(request):
+        """API endpoint na pridanie vozidla."""
+        try:
+            data = await request.json()
+            vehicle_id = data.get("vehicle_id")
+            name = data.get("name")
 
-        hass.bus.async_fire("fleet_charging.charging_stopped", {
-            "wallbox_id": wallbox_id
-        })
+            if not vehicle_id or not name:
+                return web.json_response({"error": "Chýbajú požadované údaje"}, status=400)
 
-    hass.services.async_register(DOMAIN, "stop_charging", stop_charging)
+            await db.add_vehicle(vehicle_id, name)
+            return web.json_response({"message": "Vozidlo bolo pridané"})
 
-    # Odomknutie kábla
-    async def unlock_cable(call: ServiceCall):
-        wallbox_id = call.data.get("wallbox_id")
+        except Exception as e:
+            _LOGGER.error(f"Chyba pri pridávaní vozidla: {e}")
+            return web.json_response({"error": "Nepodarilo sa pridať vozidlo"}, status=500)
 
-        _LOGGER.info(f"Odomykám kábel na Wallboxe {wallbox_id}")
+    async def handle_log_session(request):
+        """API endpoint na zaznamenanie nabíjacej relácie."""
+        try:
+            data = await request.json()
+            vehicle_id = data.get("vehicle_id")
+            user_id = data.get("user_id")
 
-        hass.states.async_set(f"sensor.{wallbox_id}_lock_unlock_charging_socket", "unlocked")
+            if not vehicle_id or not user_id:
+                return web.json_response({"error": "Chýbajú požadované údaje"}, status=400)
 
-        hass.bus.async_fire("fleet_charging.cable_unlocked", {
-            "wallbox_id": wallbox_id
-        })
+            await db.log_session(vehicle_id, user_id)
+            return web.json_response({"message": "Nabíjacia relácia bola zaznamenaná"})
 
-    hass.services.async_register(DOMAIN, "unlock_cable", unlock_cable)
+        except Exception as e:
+            _LOGGER.error(f"Chyba pri zaznamenaní relácie: {e}")
+            return web.json_response({"error": "Nepodarilo sa zaznamenať reláciu"}, status=500)
 
-    # Nastavenie nabíjacieho prúdu
-    async def set_charging_current(call: ServiceCall):
-        wallbox_id = call.data.get("wallbox_id")
-        current = call.data.get("current")
-
-        _LOGGER.info(f"Nastavujem nabíjací prúd na Wallboxe {wallbox_id} na {current} A")
-
-        hass.states.async_set(f"sensor.{wallbox_id}_charging_current_setting", current)
-
-        hass.bus.async_fire("fleet_charging.charging_current_set", {
-            "wallbox_id": wallbox_id,
-            "current": current
-        })
-
-    hass.services.async_register(DOMAIN, "set_charging_current", set_charging_current)
+    hass.http.register_view(
+        type("FleetChargingAPI", (web.View,), {"get": handle_get_data})
+    )
+    hass.http.register_view(
+        type("FleetChargingAddUserAPI", (web.View,), {"post": handle_add_user})
+    )
+    hass.http.register_view(
+        type("FleetChargingAddVehicleAPI", (web.View,), {"post": handle_add_vehicle})
+    )
+    hass.http.register_view(
+        type("FleetChargingLogSessionAPI", (web.View,), {"post": handle_log_session})
+    )
 
     return True
+
