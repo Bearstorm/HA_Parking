@@ -1,42 +1,28 @@
-import asyncio
-import json
-import logging
-from aiohttp import web
+from homeassistant.components.frontend import async_register_panel
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
-from .database import FleetDatabase
+import logging
 
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "fleet_charging"
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Nastavenie vlastného API pre Fleet Charging Manager."""
-
-    db = FleetDatabase(hass)
-    await db.initialize()
-
-    async def handle_get_data(request):
-        """API endpoint na získanie údajov pre vizualizáciu."""
-        try:
-            users = await db.get_all_users()
-            vehicles = await db.get_all_vehicles()
-            sessions = await db.get_all_sessions()
-
-            data = {
-                "users": users,
-                "vehicles": vehicles,
-                "sessions": sessions
-            }
-
-            return web.json_response(data)
-
-        except Exception as e:
-            _LOGGER.error(f"Chyba pri načítaní údajov z databázy: {e}")
-            return web.json_response({"error": "Nepodarilo sa načítať údaje"}, status=500)
-
-    hass.http.register_view(
-        type("FleetChargingAPI", (web.View,), {"get": handle_get_data})
+async def async_setup_entry(hass: HomeAssistant, entry):
+    """Registrovanie vlastného panela v Home Assistant."""
+    
+    hass.http.register_static_path(
+        f"/local/{DOMAIN}_panel.js",
+        hass.config.path(f"custom_components/{DOMAIN}/panel.js"),
+        False
     )
 
+    async_register_panel(
+        hass,
+        component_name="custom",
+        sidebar_title="Fleet Charging",
+        sidebar_icon="mdi:ev-station",
+        module_url=f"/local/{DOMAIN}_panel.js"
+    )
+
+    _LOGGER.info("Panel %s bol úspešne zaregistrovaný!", DOMAIN)
     return True
+
