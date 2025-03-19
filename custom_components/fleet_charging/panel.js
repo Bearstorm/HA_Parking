@@ -5,179 +5,48 @@ class FleetChargingPanel extends HTMLElement {
     }
 
     set hass(hass) {
-        if (!this.content) {
-            this.renderUI(hass);
+        this.hass = hass;
+        this.fetchData();
+    }
+
+    async fetchData() {
+        try {
+            const response = await fetch("/api/fleet_charging");
+            this.data = await response.json();
+            this.render();
+        } catch (error) {
+            console.error("Chyba pri načítaní údajov:", error);
         }
     }
 
-    renderUI(hass) {
+    render() {
+        if (!this.shadowRoot) return;
+
         this.shadowRoot.innerHTML = `
             <style>
-                :host {
-                    display: block;
-                    font-family: Arial, sans-serif;
-                    padding: 16px;
-                }
-                h1 {
-                    font-size: 24px;
-                    font-weight: bold;
-                    margin-bottom: 16px;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-                th, td {
-                    padding: 12px;
-                    border: 1px solid #ddd;
-                    text-align: left;
-                }
-                th {
-                    background-color: #f4f4f4;
-                }
-                .actions {
-                    display: flex;
-                    gap: 8px;
-                }
-                button {
-                    padding: 6px 12px;
-                    border: none;
-                    cursor: pointer;
-                    border-radius: 4px;
-                }
-                .add-button {
-                    background-color: #2196F3;
-                    color: white;
-                }
-                .delete-button {
-                    background-color: #f44336;
-                    color: white;
-                }
+                .container { padding: 20px; font-family: Arial, sans-serif; }
+                h2 { color: #3498db; }
+                .section { margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
+                .section h3 { margin-top: 0; }
+                .item { padding: 5px 0; }
             </style>
-
-            <h1>Správa nabíjania</h1>
-
-            <h2>Vozidlá</h2>
-            <table>
-                <tr>
-                    <th>ID</th>
-                    <th>Názov</th>
-                    <th>Akcie</th>
-                </tr>
-                ${this.getVehicles(hass).map(vehicle => `
-                    <tr>
-                        <td>${vehicle.id}</td>
-                        <td>${vehicle.name}</td>
-                        <td class="actions">
-                            <button class="delete-button" data-id="${vehicle.id}">Odstrániť</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </table>
-            <button class="add-button" id="add-vehicle">Pridať vozidlo</button>
-
-            <h2>Používatelia</h2>
-            <table>
-                <tr>
-                    <th>ID</th>
-                    <th>Meno</th>
-                    <th>Akcie</th>
-                </tr>
-                ${this.getUsers(hass).map(user => `
-                    <tr>
-                        <td>${user.id}</td>
-                        <td>${user.name}</td>
-                        <td class="actions">
-                            <button class="delete-button" data-id="${user.id}">Odstrániť</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </table>
-            <button class="add-button" id="add-user">Pridať používateľa</button>
-
-            <h2>Wallboxy</h2>
-            <table>
-                <tr>
-                    <th>Wallbox</th>
-                    <th>Pripojené vozidlo</th>
-                    <th>Stav</th>
-                </tr>
-                ${this.getWallboxStatus(hass).map(wallbox => `
-                    <tr>
-                        <td>${wallbox.name}</td>
-                        <td>${wallbox.vehicle || "Nepripojené"}</td>
-                        <td>${wallbox.status}</td>
-                    </tr>
-                `).join('')}
-            </table>
-
-            <h2>Akcie</h2>
-            <button class="add-button" id="authorize-charging">Autorizovať nabíjanie</button>
+            <div class="container">
+                <h2>Fleet Charging Manager</h2>
+                <div class="section">
+                    <h3>🔹 Priradenie používateľov</h3>
+                    ${this.data?.users?.map(user => `<div class="item">👤 ${user.name}</div>`).join('') || "Žiadni používatelia"}
+                </div>
+                <div class="section">
+                    <h3>🚗 Vozidlá</h3>
+                    ${this.data?.vehicles?.map(vehicle => `<div class="item">🚘 ${vehicle.name}</div>`).join('') || "Žiadne vozidlá"}
+                </div>
+                <div class="section">
+                    <h3>⚡ Nabíjacie relácie</h3>
+                    ${this.data?.sessions?.map(session => `<div class="item">🔋 ${session.vehicle_id} nabíjané užívateľom ${session.user_id}</div>`).join('') || "Žiadne relácie"}
+                </div>
+            </div>
         `;
-
-        this.shadowRoot.getElementById("add-vehicle").addEventListener("click", () => this.addVehicle(hass));
-        this.shadowRoot.getElementById("add-user").addEventListener("click", () => this.addUser(hass));
-        this.shadowRoot.getElementById("authorize-charging").addEventListener("click", () => this.authorizeCharging(hass));
-
-        this.shadowRoot.querySelectorAll(".delete-button").forEach(button => {
-            button.addEventListener("click", (event) => {
-                this.deleteItem(hass, event.target.dataset.id);
-            });
-        });
-    }
-
-    getVehicles(hass) {
-        return hass.states["sensor.fleet_charging_vehicles"]?.attributes?.vehicles || [];
-    }
-
-    getUsers(hass) {
-        return hass.states["sensor.fleet_charging_users"]?.attributes?.users || [];
-    }
-
-    getWallboxStatus(hass) {
-        return hass.states["sensor.fleet_charging_wallbox_status"]?.attributes?.wallboxes || [];
-    }
-
-    addVehicle(hass) {
-        const vehicleId = prompt("Zadajte ID vozidla:");
-        const vehicleName = prompt("Zadajte názov vozidla:");
-        if (vehicleId && vehicleName) {
-            hass.callService("fleet_charging", "add_vehicle", {
-                vehicle_id: vehicleId,
-                name: vehicleName
-            });
-        }
-    }
-
-    addUser(hass) {
-        const userId = prompt("Zadajte ID používateľa:");
-        const userName = prompt("Zadajte meno používateľa:");
-        if (userId && userName) {
-            hass.callService("fleet_charging", "add_user", {
-                user_id: userId,
-                name: userName
-            });
-        }
-    }
-
-    deleteItem(hass, id) {
-        if (confirm("Naozaj chcete odstrániť tento záznam?")) {
-            hass.callService("fleet_charging", "delete_item", { id: id });
-        }
-    }
-
-    authorizeCharging(hass) {
-        alert("Autorizácia nabíjania bola odoslaná!");
-        hass.callService("fleet_charging", "authorize_charging", {});
     }
 }
 
 customElements.define("fleet-charging-panel", FleetChargingPanel);
-
-window.customPanels = window.customPanels || [];
-window.customPanels.push({
-    component_name: "fleet-charging-panel",
-    sidebar_title: "Fleet Charging",
-    sidebar_icon: "mdi:ev-station",
-    module_url: "/local/fleet_charging/panel.js"
-});
