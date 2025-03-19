@@ -1,7 +1,8 @@
 {
   "config": {
     "error": {
-      "database_error": "Nepodarilo sa uložiť do databázy. Skontroluj logy."
+      "database_error": "Nepodarilo sa uložiť do databázy. Skontroluj logy.",
+      "wallbox_error": "Chyba komunikácie s Wallboxom."
     }
   }
 }
