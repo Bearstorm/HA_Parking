@@ -30,6 +30,15 @@ class FleetDatabase:
                     vehicle_id TEXT,
                     user_id TEXT
                 )""")
+            cursor.execute("""
+                CREATE TABLE wallbox_assignments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT,
+                    vehicle_id TEXT,
+                    wallbox_id TEXT,
+                    FOREIGN KEY(user_id) REFERENCES users(id),
+                    FOREIGN KEY(vehicle_id) REFERENCES vehicles(id)
+                )""")
             conn.commit()
 
     # Pridanie vozidla
@@ -46,28 +55,24 @@ class FleetDatabase:
             cursor.execute("INSERT OR IGNORE INTO users (id, name) VALUES (?, ?)", (user_id, name))
             conn.commit()
 
-    # Vyhľadanie vozidla
-    async def get_vehicle(self, vehicle_id):
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM vehicles WHERE id = ?", (vehicle_id,))
-            row = cursor.fetchone()
-            return {"id": row[0], "name": row[1]} if row else None
-
-    # Vyhľadanie užívateľa
-    async def get_user(self, user_id):
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-            row = cursor.fetchone()
-            return {"id": row[0], "name": row[1]} if row else None
-
-    # Logovanie relácie nabíjania
-    async def log_session(self, vehicle_id, user_id):
+    # Pridanie Wallboxu k vozidlu a užívateľovi
+    async def assign_wallbox(self, user_id, vehicle_id, wallbox_id):
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO sessions (vehicle_id, user_id) VALUES (?, ?)",
-                (vehicle_id, user_id)
+                "INSERT INTO wallbox_assignments (user_id, vehicle_id, wallbox_id) VALUES (?, ?, ?)",
+                (user_id, vehicle_id, wallbox_id)
             )
             conn.commit()
+
+    # Získanie priradených Wallboxov
+    async def get_assigned_wallboxes(self, user_id, vehicle_id):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT wallbox_id FROM wallbox_assignments WHERE user_id = ? AND vehicle_id = ?",
+                (user_id, vehicle_id)
+            )
+            rows = cursor.fetchall()
+            return [row[0] for row in rows] if rows else []
+
