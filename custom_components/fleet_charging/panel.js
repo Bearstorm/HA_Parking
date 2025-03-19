@@ -1,49 +1,43 @@
+window.customPanels = window.customPanels || [];
+window.customPanels.push({
+    name: "fleet_charging",
+    embed_iframe: false,
+    component_name: "fleet-charging-panel",
+    js_url: "/hacsfiles/fleet_charging_manager.js",
+    config: {}
+});
+
 class FleetChargingPanel extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
     }
 
-    set hass(hass) {
-        this.hass = hass;
-        this.fetchData();
-    }
-
-    async fetchData() {
-        try {
-            const response = await fetch("/api/fleet_charging");
-            this.data = await response.json();
-            this.render();
-        } catch (error) {
-            console.error("Chyba pri načítaní údajov:", error);
-        }
+    async connectedCallback() {
+        this.render();
     }
 
     render() {
-        if (!this.shadowRoot) return;
-
         this.shadowRoot.innerHTML = `
             <style>
-                .container { padding: 20px; font-family: Arial, sans-serif; }
-                h2 { color: #3498db; }
-                .section { margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
-                .section h3 { margin-top: 0; }
-                .item { padding: 5px 0; }
+                .container {
+                    font-family: Arial, sans-serif;
+                    padding: 20px;
+                    max-width: 800px;
+                }
+                h1 {
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                }
+                fleet-charging-manager {
+                    display: block;
+                    width: 100%;
+                }
             </style>
+
             <div class="container">
-                <h2>Fleet Charging Manager</h2>
-                <div class="section">
-                    <h3>🔹 Priradenie používateľov</h3>
-                    ${this.data?.users?.map(user => `<div class="item">👤 ${user.name}</div>`).join('') || "Žiadni používatelia"}
-                </div>
-                <div class="section">
-                    <h3>🚗 Vozidlá</h3>
-                    ${this.data?.vehicles?.map(vehicle => `<div class="item">🚘 ${vehicle.name}</div>`).join('') || "Žiadne vozidlá"}
-                </div>
-                <div class="section">
-                    <h3>⚡ Nabíjacie relácie</h3>
-                    ${this.data?.sessions?.map(session => `<div class="item">🔋 ${session.vehicle_id} nabíjané užívateľom ${session.user_id}</div>`).join('') || "Žiadne relácie"}
-                </div>
+                <h1>Fleet Charging Panel</h1>
+                <fleet-charging-manager></fleet-charging-manager>
             </div>
         `;
     }
