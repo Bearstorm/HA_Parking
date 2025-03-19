@@ -1,4 +1,4 @@
-class FleetChargingManager extends HTMLElement {
+class FleetChargingPanel extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -6,161 +6,123 @@ class FleetChargingManager extends HTMLElement {
 
     set hass(hass) {
         if (!this.content) {
-            this.createUI();
+            this.hass = hass;
+            this.content = document.createElement("div");
+            this.content.innerHTML = `
+                <style>
+                    .container {
+                        padding: 20px;
+                        font-family: Arial, sans-serif;
+                    }
+                    .card {
+                        background: var(--card-background-color);
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 20px;
+                        box-shadow: var(--ha-card-box-shadow);
+                    }
+                    .title {
+                        font-size: 1.2em;
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                    }
+                    .button {
+                        background: var(--primary-color);
+                        color: white;
+                        border: none;
+                        padding: 10px;
+                        cursor: pointer;
+                        border-radius: 5px;
+                        margin-top: 10px;
+                    }
+                    .button:hover {
+                        opacity: 0.8;
+                    }
+                    select, input {
+                        width: 100%;
+                        padding: 8px;
+                        margin: 5px 0;
+                        border: 1px solid #ccc;
+                        border-radius: 4px;
+                    }
+                </style>
+                <div class="container">
+                    <div class="card">
+                        <div class="title">Priradenie používateľa k vozidlu</div>
+                        <select id="user_select"></select>
+                        <select id="vehicle_select"></select>
+                        <button class="button" id="assign_user_vehicle">Priradiť</button>
+                    </div>
+                    <div class="card">
+                        <div class="title">Zoznam nabíjacích relácií</div>
+                        <ul id="sessions_list"></ul>
+                    </div>
+                    <div class="card">
+                        <div class="title">Správa Wallboxov</div>
+                        <select id="wallbox_select"></select>
+                        <select id="vehicle_wallbox_select"></select>
+                        <button class="button" id="assign_wallbox">Priradiť Wallbox</button>
+                    </div>
+                </div>
+            `;
+            this.shadowRoot.appendChild(this.content);
+
+            this.loadData();
+            this.shadowRoot.getElementById("assign_user_vehicle").addEventListener("click", () => this.assignUserToVehicle());
+            this.shadowRoot.getElementById("assign_wallbox").addEventListener("click", () => this.assignWallbox());
         }
-        this.updateUI(hass);
     }
 
-    createUI() {
-        this.content = document.createElement("div");
-        this.content.innerHTML = `
-            <style>
-                .container {
-                    padding: 16px;
-                    font-family: Arial, sans-serif;
-                }
-                .section {
-                    margin-bottom: 20px;
-                    padding: 10px;
-                    border-radius: 8px;
-                    background: #1e1e1e;
-                    color: white;
-                }
-                .section h2 {
-                    margin: 0;
-                    padding-bottom: 10px;
-                    border-bottom: 1px solid #444;
-                }
-                .entry {
-                    display: flex;
-                    justify-content: space-between;
-                    padding: 5px 0;
-                }
-                .button {
-                    background: #007bff;
-                    color: white;
-                    padding: 5px 10px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                }
-                .button:hover {
-                    background: #0056b3;
-                }
-                select, input {
-                    padding: 5px;
-                    border-radius: 5px;
-                    border: 1px solid #ccc;
-                    width: 100%;
-                }
-                .grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 10px;
-                }
-            </style>
-
-            <div class="container">
-                <div class="section">
-                    <h2>Správa používateľov a vozidiel</h2>
-                    <div class="grid">
-                        <div>
-                            <label>Vyberte spoločnosť</label>
-                            <select id="companySelection"></select>
-                        </div>
-                        <div>
-                            <label>Vyberte používateľa</label>
-                            <select id="userSelection"></select>
-                        </div>
-                    </div>
-                    <button id="assignUserBtn" class="button">Priradiť používateľa</button>
-                </div>
-
-                <div class="section">
-                    <h2>Správa wallboxov</h2>
-                    <div class="grid">
-                        <div>
-                            <label>Vyberte vozidlo</label>
-                            <select id="vehicleSelection"></select>
-                        </div>
-                        <div>
-                            <label>Vyberte wallbox</label>
-                            <select id="wallboxSelection"></select>
-                        </div>
-                    </div>
-                    <button id="authorizeWallboxBtn" class="button">Autorizovať wallbox</button>
-                </div>
-
-                <div class="section">
-                    <h2>Aktuálne nabíjanie</h2>
-                    <p id="chargingStatus">Žiadna aktívna nabíjacia relácia</p>
-                </div>
-            </div>
-        `;
-        this.shadowRoot.appendChild(this.content);
-        this.attachEventListeners();
-    }
-
-    attachEventListeners() {
-        this.shadowRoot.getElementById("assignUserBtn").addEventListener("click", () => this.assignUser());
-        this.shadowRoot.getElementById("authorizeWallboxBtn").addEventListener("click", () => this.authorizeWallbox());
-    }
-
-    async updateUI(hass) {
+    async loadData() {
         try {
-            const response = await fetch("/api/fleet_charging?action=get_vehicles");
+            const response = await fetch("/api/fleet_charging");
             const data = await response.json();
-            const vehicleSelect = this.shadowRoot.getElementById("vehicleSelection");
-            vehicleSelect.innerHTML = data.vehicles.map(v => `<option value="${v.id}">${v.name}</option>`).join("");
 
-            const userResponse = await fetch("/api/fleet_charging?action=get_users");
-            const userData = await userResponse.json();
-            const userSelect = this.shadowRoot.getElementById("userSelection");
-            userSelect.innerHTML = userData.users.map(u => `<option value="${u.id}">${u.name}</option>`).join("");
+            const userSelect = this.shadowRoot.getElementById("user_select");
+            const vehicleSelect = this.shadowRoot.getElementById("vehicle_select");
+            const wallboxSelect = this.shadowRoot.getElementById("wallbox_select");
+            const vehicleWallboxSelect = this.shadowRoot.getElementById("vehicle_wallbox_select");
+            const sessionsList = this.shadowRoot.getElementById("sessions_list");
 
-            const sessionResponse = await fetch("/api/fleet_charging?action=get_active_session");
-            const sessionData = await sessionResponse.json();
-            this.shadowRoot.getElementById("chargingStatus").innerText = sessionData.active_session 
-                ? `Nabíja sa: ${sessionData.active_session.vehicle_name} - ${sessionData.active_session.user_name}` 
-                : "Žiadna aktívna nabíjacia relácia";
+            userSelect.innerHTML = data.users.map(user => `<option value="${user.id}">${user.name}</option>`).join("");
+            vehicleSelect.innerHTML = data.vehicles.map(vehicle => `<option value="${vehicle.id}">${vehicle.name}</option>`).join("");
+            wallboxSelect.innerHTML = data.wallboxes.map(wallbox => `<option value="${wallbox.id}">${wallbox.name}</option>`).join("");
+            vehicleWallboxSelect.innerHTML = data.vehicles.map(vehicle => `<option value="${vehicle.id}">${vehicle.name}</option>`).join("");
+            sessionsList.innerHTML = data.sessions.map(session => `<li>${session.vehicle_id} - ${session.user_id} (${session.timestamp})</li>`).join("");
         } catch (error) {
             console.error("Chyba pri načítaní údajov:", error);
         }
     }
 
-    async assignUser() {
-        const user_id = this.shadowRoot.getElementById("userSelection").value;
-        const vehicle_id = this.shadowRoot.getElementById("vehicleSelection").value;
+    async assignUserToVehicle() {
+        const user_id = this.shadowRoot.getElementById("user_select").value;
+        const vehicle_id = this.shadowRoot.getElementById("vehicle_select").value;
 
         const response = await fetch("/api/fleet_charging", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "assign_vehicle", user_id, vehicle_id })
+            body: JSON.stringify({ action: "assign_vehicle", user_id, vehicle_id }),
         });
 
-        if (response.ok) {
-            alert("Používateľ bol úspešne priradený k vozidlu.");
-        } else {
-            alert("Chyba pri priraďovaní používateľa.");
-        }
+        const result = await response.json();
+        alert(result.message);
+        this.loadData();
     }
 
-    async authorizeWallbox() {
-        const user_id = this.shadowRoot.getElementById("userSelection").value;
-        const wallbox_id = this.shadowRoot.getElementById("wallboxSelection").value;
+    async assignWallbox() {
+        const wallbox_id = this.shadowRoot.getElementById("wallbox_select").value;
+        const vehicle_id = this.shadowRoot.getElementById("vehicle_wallbox_select").value;
 
         const response = await fetch("/api/fleet_charging", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "authorize_wallbox", user_id, wallbox_id })
+            body: JSON.stringify({ action: "set_wallbox", wallbox_id, vehicle_id }),
         });
 
-        if (response.ok) {
-            alert("Wallbox bol úspešne autorizovaný.");
-        } else {
-            alert("Chyba pri autorizácii wallboxu.");
-        }
+        const result = await response.json();
+        alert(result.message);
+        this.loadData();
     }
 }
 
-customElements.define("fleet-charging-manager", FleetChargingManager);
+customElements.define("fleet-charging-panel", FleetChargingPanel);
