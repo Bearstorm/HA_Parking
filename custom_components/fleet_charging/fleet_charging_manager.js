@@ -1,3 +1,4 @@
+
 class FleetChargingPanel extends HTMLElement {
     constructor() {
         super();
@@ -14,6 +15,31 @@ class FleetChargingPanel extends HTMLElement {
         const response = await fetch("/api/states");
         this.data = await response.json();
         this.render();
+    }
+
+    async startCharging() {
+        const wallbox = this.shadowRoot.getElementById("wallboxSelect").value;
+        const vehicle = this.shadowRoot.getElementById("vehicleSelect").value;
+
+        await fetch("/api/services/fleet_charging/start_charging", {
+            method: "POST",
+            body: JSON.stringify({ wallbox_id: wallbox, vehicle_id: vehicle }),
+            headers: { "Content-Type": "application/json" }
+        });
+
+        this.updateData();
+    }
+
+    async stopCharging() {
+        const wallbox = this.shadowRoot.getElementById("wallboxSelect").value;
+
+        await fetch("/api/services/fleet_charging/stop_charging", {
+            method: "POST",
+            body: JSON.stringify({ wallbox_id: wallbox }),
+            headers: { "Content-Type": "application/json" }
+        });
+
+        this.updateData();
     }
 
     render() {
@@ -67,6 +93,7 @@ class FleetChargingPanel extends HTMLElement {
                 </div>
 
                 <button onclick="startCharging()">Spustiť nabíjanie</button>
+                <button onclick="stopCharging()">Zastaviť nabíjanie</button>
             </div>
         `;
     }
