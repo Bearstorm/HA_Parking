@@ -1,6 +1,7 @@
 import sqlite3
 
 async def generate_report(db):
+    """Vygeneruje prehľad nabíjacích relácií."""
     with sqlite3.connect(db.db_path) as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -14,4 +15,3 @@ async def generate_report(db):
              for date, vid, uid, count in rows]
         )
         return report if report else "Žiadne dáta"
-
