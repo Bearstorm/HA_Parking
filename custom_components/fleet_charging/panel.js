@@ -3,7 +3,7 @@ window.customPanels.push({
     name: "fleet_charging",
     embed_iframe: false,
     component_name: "fleet-charging-panel",
-    js_url: "/hacsfiles/fleet_charging_manager.js",
+    js_url: "/hacsfiles/fleet_charging/panel.js",
     config: {}
 });
 
@@ -23,7 +23,7 @@ class FleetChargingPanel extends HTMLElement {
                 .container {
                     font-family: Arial, sans-serif;
                     padding: 20px;
-                    max-width: 800px;
+                    max-width: 900px;
                 }
                 h1 {
                     font-size: 24px;
@@ -36,7 +36,7 @@ class FleetChargingPanel extends HTMLElement {
             </style>
 
             <div class="container">
-                <h1>Fleet Charging Panel</h1>
+                <h1>Fleet Charging Manager</h1>
                 <fleet-charging-manager></fleet-charging-manager>
             </div>
         `;
