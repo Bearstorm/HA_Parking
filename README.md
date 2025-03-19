@@ -11,15 +11,19 @@
 - Automatické logovanie nabíjacích relácií
 - Denné generovanie reportov o používaní
 - Podpora automatizácií a okamžitých notifikácií na základe identifikácie
+- Vizualizácia údajov o nabíjaní a Wallboxoch v Home Assistant
 
 ### 📂 Inštalácia:
-1. V Home Assistant cez HACS:
-   - Prejdi do HACS → Integrations → Custom repositories
-   - Zadaj URL tohto GitHub repozitára a vyber typ „Integration“
-2. Integráciu „Fleet Charging Manager“ nainštaluj a reštartuj Home Assistant.
+1. **V Home Assistant cez HACS:**
+   - Prejdi do *HACS* → *Integrations* → *Custom repositories*
+   - Zadaj URL tohto GitHub repozitára a vyber typ *Integration*
+2. **Integráciu „Fleet Charging Manager“ nainštaluj a reštartuj Home Assistant.**
+3. **Po reštarte Home Assistant pridaj novú integráciu:**
+   - Prejdi do *Settings* → *Devices & Services* → *Add Integration*
+   - Nájdeš tam *Fleet Charging Manager*
 
 ### 🛠️ Použitie:
-- Pridávanie vozidiel:
+- **Pridávanie vozidiel:**
 ```yaml
 service: fleet_charging.add_vehicle
 data:
@@ -27,7 +31,7 @@ data:
   name: "Škoda Enyaq"
 ```
 
-- Pridávanie používateľov:
+- **Pridávanie používateľov:**
 ```yaml
 service: fleet_charging.add_user
 data:
@@ -35,7 +39,7 @@ data:
   name: "Ján Novák"
 ```
 
-- Identifikácia vozidla a používateľa:
+- **Identifikácia vozidla a používateľa:**
 ```yaml
 service: fleet_charging.identify_vehicle
 data:
@@ -46,6 +50,8 @@ data:
 ### 📊 Senzory dostupné v HA:
 - `sensor.aktualna_relacia_nabijania` – aktuálne identifikované vozidlo a používateľ
 - `sensor.denny_report_nabijania` – denný report aktivity
+- `sensor.wallbox_nabijanie` – stav nabíjania Wallboxu
+- `sensor.wallbox_spotreba` – celková spotreba vozidla cez Wallbox
 
 ### 🚀 Pridávanie vozidiel a používateľov cez UI (voliteľné):
 Môžete pridať vozidlá a používateľov priamo cez používateľské rozhranie Home Assistant:
@@ -67,15 +73,19 @@ Môžete pridať vozidlá a používateľov priamo cez používateľské rozhran
 - Automatic logging of charging sessions
 - Daily usage report generation
 - Automation and notifications based on identification events
+- Visualization of charging data and Wallbox status in Home Assistant
 
 ### 📂 Installation:
-1. Using HACS in Home Assistant:
-   - Navigate to HACS → Integrations → Custom repositories
-   - Enter the URL of this GitHub repository and select type "Integration"
-2. Install the "Fleet Charging Manager" integration and restart Home Assistant.
+1. **Using HACS in Home Assistant:**
+   - Navigate to *HACS* → *Integrations* → *Custom repositories*
+   - Enter the URL of this GitHub repository and select type *Integration*
+2. **Install the "Fleet Charging Manager" integration and restart Home Assistant.**
+3. **After restarting Home Assistant, add the new integration:**
+   - Navigate to *Settings* → *Devices & Services* → *Add Integration*
+   - You will find *Fleet Charging Manager* listed there
 
 ### 🛠️ Usage:
-- Adding vehicles:
+- **Adding vehicles:**
 ```yaml
 service: fleet_charging.add_vehicle
 data:
@@ -83,7 +93,7 @@ data:
   name: "Tesla Model 3"
 ```
 
-- Adding users:
+- **Adding users:**
 ```yaml
 service: fleet_charging.add_user
 data:
@@ -91,7 +101,7 @@ data:
   name: "John Doe"
 ```
 
-- Identifying vehicles and users:
+- **Identifying vehicles and users:**
 ```yaml
 service: fleet_charging.identify_vehicle
 data:
@@ -102,6 +112,8 @@ data:
 ### 📊 Available sensors in HA:
 - `sensor.aktualna_relacia_nabijania` – currently identified vehicle and user
 - `sensor.denny_report_nabijania` – daily activity report
+- `sensor.wallbox_nabijanie` – Wallbox charging status
+- `sensor.wallbox_spotreba` – total vehicle consumption through Wallbox
 
 ### 🚀 Adding vehicles and users through UI (optional):
 You can add vehicles and users directly through the Home Assistant UI:
@@ -117,6 +129,5 @@ You can add vehicles and users directly through the Home Assistant UI:
 - [Bearstorm](https://github.com/Bearstorm/)
 
 📌 **Feedback a návrhy vítané! / Feedback and suggestions welcome!**
-
 
 
