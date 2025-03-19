@@ -9,28 +9,80 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/Bearstorm/HA_Parking/issues",
   "config_flow": true,
-  "panel_custom": {
-    "name": "fleet_charging_panel",
-    "embed_iframe": true,
-    "trust_external": false,
-    "module_url": "/local/fleet_charging/panel.js"
-  },
-  "homeassistant": "2024.3.0",
   "integration_type": "hub",
-  "is_built_in": false,
-  "ssdp": [],
-  "zeroconf": [],
+  "dhcp": [],
   "bluetooth": [],
-  "modbus": [
-    {
-      "name": "wallbox_1",
-      "host": "192.168.1.10",
-      "port": 502
+  "homekit": {},
+  "mqtt": {},
+  "zeroconf": [],
+  "usb": [],
+  "ssdp": [],
+  "services": {
+    "identify_vehicle": {
+      "name": "Identifikácia vozidla a užívateľa",
+      "description": "Identifikuje vozidlo a užívateľa podľa ID.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID vozidla",
+          "description": "Unikátne ID vozidla",
+          "required": true,
+          "selector": {
+            "text": {}
+          }
+        },
+        "user_id": {
+          "name": "ID užívateľa",
+          "description": "Unikátne ID užívateľa",
+          "required": true,
+          "selector": {
+            "text": {}
+          }
+        }
+      }
     },
-    {
-      "name": "wallbox_2",
-      "host": "192.168.1.11",
-      "port": 502
+    "add_vehicle": {
+      "name": "Pridanie vozidla do databázy",
+      "description": "Pridá nové vozidlo do databázy.",
+      "fields": {
+        "vehicle_id": {
+          "name": "ID vozidla",
+          "description": "Unikátne ID vozidla (napr. EV123)",
+          "required": true,
+          "selector": {
+            "text": {}
+          }
+        },
+        "name": {
+          "name": "Názov vozidla",
+          "description": "Názov vozidla (napr. Škoda Enyaq)",
+          "required": true,
+          "selector": {
+            "text": {}
+          }
+        }
+      }
+    },
+    "add_user": {
+      "name": "Pridanie užívateľa do databázy",
+      "description": "Pridá nového užívateľa do databázy.",
+      "fields": {
+        "user_id": {
+          "name": "ID užívateľa",
+          "description": "Unikátne ID užívateľa (napr. user001)",
+          "required": true,
+          "selector": {
+            "text": {}
+          }
+        },
+        "name": {
+          "name": "Meno užívateľa",
+          "description": "Celé meno užívateľa (napr. Ján Novák)",
+          "required": true,
+          "selector": {
+            "text": {}
+          }
+        }
+      }
     }
-  ]
+  }
 }
