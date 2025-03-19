@@ -1,78 +1,69 @@
-import logging
+import asyncio
 import json
 from aiohttp import web
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import HomeAssistantType
 from .database import FleetDatabase
 
-_LOGGER = logging.getLogger(__name__)
 DOMAIN = "fleet_charging"
 
-async def async_setup(hass: HomeAssistantType, config: dict):
-    """Nastavenie API servera."""
+async def async_setup(hass: HomeAssistant, config: dict):
     hass.http.register_view(FleetChargingAPI(hass))
     return True
 
 class FleetChargingAPI(web.View):
-    """API pre správu vozidiel, používateľov a wallboxov."""
+    """Hlavná API trieda pre Fleet Charging Manager."""
 
-    def __init__(self, hass: HomeAssistant):
-        """Inicializácia API."""
+    def __init__(self, hass):
+        """Inicializácia API s odkazom na databázu."""
         self.hass = hass
         self.db = FleetDatabase(hass)
 
     async def get(self, request):
-        """Spracovanie GET požiadaviek."""
-        try:
-            action = request.query.get("action")
+        """Spracovanie GET požiadavky – Načítanie zoznamu užívateľov, vozidiel, wallboxov a relácií."""
+        users = await self.db.get_all_users()
+        vehicles = await self.db.get_all_vehicles()
+        wallboxes = await self.db.get_all_wallboxes()
+        sessions = await self.db.get_all_sessions()
 
-            if action == "get_vehicles":
-                vehicles = await self.db.get_all_vehicles()
-                return web.json_response({"vehicles": vehicles})
-
-            if action == "get_users":
-                users = await self.db.get_all_users()
-                return web.json_response({"users": users})
-
-            if action == "get_active_session":
-                session = await self.db.get_latest_session()
-                return web.json_response({"active_session": session})
-
-            return web.json_response({"error": "Neznáma akcia"}, status=400)
-
-        except Exception as e:
-            _LOGGER.error(f"Chyba API: {e}")
-            return web.json_response({"error": "Interná chyba servera"}, status=500)
+        return web.json_response({
+            "users": users,
+            "vehicles": vehicles,
+            "wallboxes": wallboxes,
+            "sessions": sessions
+        })
 
     async def post(self, request):
-        """Spracovanie POST požiadaviek."""
+        """Spracovanie POST požiadavky – Pridanie užívateľa, vozidla alebo nastavenie wallboxu."""
         try:
             data = await request.json()
             action = data.get("action")
 
             if action == "assign_vehicle":
-                vehicle_id = data.get("vehicle_id")
-                user_id = data.get("user_id")
+                user_id = data["user_id"]
+                vehicle_id = data["vehicle_id"]
+                await self.db.assign_vehicle(user_id, vehicle_id)
+                return web.json_response({"message": "Používateľ bol priradený k vozidlu."})
 
-                if not vehicle_id or not user_id:
-                    return web.json_response({"error": "Chýbajúce parametre"}, status=400)
+            elif action == "set_wallbox":
+                wallbox_id = data["wallbox_id"]
+                vehicle_id = data["vehicle_id"]
+                await self.db.set_wallbox(vehicle_id, wallbox_id)
+                return web.json_response({"message": "Wallbox bol nastavený pre vozidlo."})
 
-                await self.db.assign_vehicle_to_user(vehicle_id, user_id)
-                return web.json_response({"success": True})
+            elif action == "add_user":
+                user_id = data["user_id"]
+                user_name = data["user_name"]
+                await self.db.add_user(user_id, user_name)
+                return web.json_response({"message": "Používateľ bol pridaný."})
 
-            if action == "authorize_wallbox":
-                wallbox_id = data.get("wallbox_id")
-                user_id = data.get("user_id")
+            elif action == "add_vehicle":
+                vehicle_id = data["vehicle_id"]
+                vehicle_name = data["vehicle_name"]
+                await self.db.add_vehicle(vehicle_id, vehicle_name)
+                return web.json_response({"message": "Vozidlo bolo pridané."})
 
-                if not wallbox_id or not user_id:
-                    return web.json_response({"error": "Chýbajúce parametre"}, status=400)
-
-                await self.db.authorize_wallbox(wallbox_id, user_id)
-                return web.json_response({"success": True})
-
-            return web.json_response({"error": "Neznáma akcia"}, status=400)
+            else:
+                return web.json_response({"error": "Neznáma akcia."}, status=400)
 
         except Exception as e:
-            _LOGGER.error(f"Chyba API: {e}")
-            return web.json_response({"error": "Interná chyba servera"}, status=500)
-
+            return web.json_response({"error": str(e)}, status=500)
