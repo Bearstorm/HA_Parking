@@ -1,19 +1,19 @@
 {
-  "domain": "fleet_charging",
-  "name": "Bearstorm Fleet Charging Manager",
-  "version": "1.0.3",
-  "documentation": "https://github.com/Bearstorm/HA_Parking",
-  "dependencies": [],
-  "codeowners": ["@Bearstorm"],
-  "requirements": ["aiosqlite"],
-  "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/Bearstorm/HA_Parking/issues",
-  "config_flow": true,
-  "panel_admin": true,
-  "panel_custom": {
-    "name": "fleet_charging_manager",
-    "embed_iframe": true,
-    "trust_external_script": true,
-    "js_url": "/fleet_charging_manager.js"
-  }
+    "domain": "fleet_charging",
+    "name": "Bearstorm Fleet Charging Manager",
+    "version": "1.0.3",
+    "documentation": "https://github.com/Bearstorm/HA_Parking",
+    "dependencies": [],
+    "codeowners": ["@Bearstorm"],
+    "requirements": ["aiosqlite"],
+    "iot_class": "local_polling",
+    "issue_tracker": "https://github.com/Bearstorm/HA_Parking/issues",
+    "config_flow": true,
+    "panel_admin": true,
+    "panel_custom": {
+        "name": "fleet_charging_manager",
+        "embed_iframe": true,
+        "trust_external_script": true,
+        "js_url": "/local/panel.js"
+    }
 }
