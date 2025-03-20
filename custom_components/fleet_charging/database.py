@@ -127,4 +127,3 @@ class FleetDatabase:
                 GROUP BY vehicle_id, user_id
             """)
             return [{"vehicle": row[0], "user": row[1], "sessions": row[2]} for row in cursor.fetchall()]
-
