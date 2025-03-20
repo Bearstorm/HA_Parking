@@ -14,7 +14,7 @@
     "name": "fleet_charging_manager",
     "embed_iframe": true,
     "trust_external_script": true,
-    "module_url": "/local/fleet_charging_manager.js"
+    "js_url": "/hacsfiles/fleet_charging_manager.js"
   }
 }
 
