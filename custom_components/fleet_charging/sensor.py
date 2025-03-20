@@ -27,7 +27,7 @@ class ChargingSessionSensor(SensorEntity):
         return self._attr_state
 
     async def async_update(self, now=None):
-        session = await self._db.get_latest_session()
+        session = await self._db.get_all_sessions()
         if session:
             vehicle = session.get('vehicle_name')
             user = session.get('user_name')
