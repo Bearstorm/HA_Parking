@@ -115,3 +115,16 @@ class FleetDatabase:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM sessions")
             return [{"timestamp": row[0], "vehicle_id": row[1], "user_id": row[2], "wallbox_id": row[3]} for row in cursor.fetchall()]
+
+    async def generate_daily_report(self):
+        """Vytvorí sumár nabíjacích relácií za posledných 24 hodín."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT vehicle_id, user_id, COUNT(*) as sessions
+                FROM sessions
+                WHERE timestamp >= datetime('now', '-1 day')
+                GROUP BY vehicle_id, user_id
+            """)
+            return [{"vehicle": row[0], "user": row[1], "sessions": row[2]} for row in cursor.fetchall()]
+
