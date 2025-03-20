@@ -83,4 +83,4 @@ async def async_setup_entry(hass: HomeAssistant, entry):
 
 async def async_unload_entry(hass: HomeAssistant, entry):
     """Odstránenie záznamu z Home Assistant."""
-    return await hass.config_entries.async_unload_platforms(entry, ["sensor"])
+    return await hass.config_entries.async_unload(entry)
