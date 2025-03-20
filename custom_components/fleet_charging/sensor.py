@@ -29,8 +29,9 @@ class ChargingSessionSensor(SensorEntity):
     async def async_update(self, now=None):
         session = await self._db.get_all_sessions()
         if session:
-            vehicle = session.get('vehicle_name')
-            user = session.get('user_name')
+            session = sessions[-1]  # Použije poslednú reláciu
+            vehicle = session.get('vehicle_id')
+            user = session.get('user_id')
             self._attr_state = f"{vehicle} - {user}"
         else:
             self._attr_state = "Žiadna aktívna relácia"
