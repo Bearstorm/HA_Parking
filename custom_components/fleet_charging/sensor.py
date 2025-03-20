@@ -50,7 +50,8 @@ class DailyReportSensor(SensorEntity):
         return self._attr_state
 
     async def async_update(self, now=None):
-        self._attr_state = await self._db.generate_daily_report()
+        self._attr_state = await self._db.get_all_sessions()
+
 
 class WallboxStatusSensor(SensorEntity):
     """Senzor pre stav Wallboxu a nabíjania."""
