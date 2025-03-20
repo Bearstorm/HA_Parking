@@ -123,3 +123,4 @@ class FleetChargingManager extends HTMLElement {
 }
 
 customElements.define("fleet-charging-manager", FleetChargingManager);
+
