@@ -77,10 +77,10 @@ async def async_setup_entry(hass: HomeAssistant, entry):
     async_track_time_interval(hass, daily_report, timedelta(days=1))
 
     # Inicializácia platformy sensor
-    await hass.config_entries.async_forward_entry_setup(entry, "sensor")
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
 
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry):
     """Odstránenie záznamu z Home Assistant."""
-    return await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+    return await hass.config_entries.async_unload_platforms(entry, ["sensor"])
